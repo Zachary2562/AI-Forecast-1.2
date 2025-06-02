@@ -6,4 +6,3 @@ yfinance
 prophet
 scikit-learn
 ta
-tensorflow
