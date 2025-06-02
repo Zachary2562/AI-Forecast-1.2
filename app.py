@@ -12,7 +12,13 @@ st.set_page_config(page_title="AI Forecast App", layout="wide")
 st.title("AI Forecast App By Zachary2562")
 
 # Sidebar settings
-ticker_list = open("tickers.txt").read().splitlines()
+import os
+
+# Load ticker list from file or use a default list
+if os.path.exists("tickers.txt"):
+    ticker_list = open("tickers.txt").read().splitlines()
+else:
+    ticker_list = ["AAPL", "GOOG", "MSFT", "TSLA", "BTC-USD", "ETH-USD"]
 selected_ticker = st.sidebar.selectbox("Select an option", ticker_list)
 custom_ticker = st.sidebar.text_input("🔎 Search Yahoo Finance (e.g., AAPL, BTC-USD)")
 ticker = custom_ticker.upper() if custom_ticker else selected_ticker
