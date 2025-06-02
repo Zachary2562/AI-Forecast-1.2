@@ -25,14 +25,16 @@ ticker = custom_ticker.upper() if custom_ticker else selected_ticker
 
 high_accuracy = st.sidebar.toggle("Enable High Accuracy Forecast")
 
-enable_lstm = False
+
+# Force enable LSTM
+enable_lstm = True
 try:
     import tensorflow as tf
-    from tensorflow.keras.models import Sequential
-    from tensorflow.keras.layers import LSTM, Dense
-    enable_lstm = sys.version_info < (3, 13)
-except:
+    st.sidebar.success("✅ TensorFlow is installed.")
+except ImportError:
     enable_lstm = False
+    st.sidebar.error("❌ TensorFlow is not installed. LSTM will not run.")
+
 
 # Load data
 @st.cache_data
