@@ -137,8 +137,12 @@ if enable_lstm:
     model_lstm.add(LSTM(50, return_sequences=False))
     model_lstm.add(Dense(25))
     model_lstm.add(Dense(1))
-    model_lstm.compile(optimizer='adam', loss='mean_squared_error')
-    model_lstm.fit(x_train, y_train, batch_size=1, epochs=1, verbose=0)
+    
+model_lstm.compile(optimizer='adam', loss='mean_squared_error')
+    
+epochs_to_use = 50 if high_accuracy else 20
+history = model_lstm.fit(x_train, y_train, batch_size=32, epochs=epochs_to_use, verbose=1)
+
 
     test_data = scaled_data[training_data_len - 60:, :]
     x_test = []
@@ -154,3 +158,11 @@ if enable_lstm:
     valid = data[training_data_len:]
     valid["Predictions"] = predictions
     st.line_chart(valid[["Close", "Predictions"]])
+    # Evaluate model with RMSE
+    from sklearn.metrics import mean_squared_error
+    predictions = model_lstm.predict(x_test)
+    predictions = scaler.inverse_transform(predictions)
+    true_values = scaler.inverse_transform(y_test.reshape(-1, 1))
+    rmse = np.sqrt(mean_squared_error(true_values, predictions))
+    st.write(f"🔍 LSTM Forecast RMSE: {rmse:.2f}")
+
