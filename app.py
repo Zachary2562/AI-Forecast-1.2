@@ -115,6 +115,9 @@ st.pyplot(fig1)
 if enable_lstm:
     st.subheader("🔁 LSTM Forecast (Experimental)")
     from sklearn.preprocessing import MinMaxScaler
+    from sklearn.metrics import mean_squared_error
+    from tensorflow.keras.models import Sequential
+    from tensorflow.keras.layers import LSTM, Dense, Dropout
 
     data = df.filter(["Close"])
     dataset = data.values
@@ -133,19 +136,19 @@ if enable_lstm:
     x_train = np.reshape(x_train, (x_train.shape[0], x_train.shape[1], 1))
 
     model_lstm = Sequential()
-    model_lstm.add(LSTM(50, return_sequences=True, input_shape=(x_train.shape[1], 1)))
-    model_lstm.add(LSTM(50, return_sequences=False))
+    model_lstm.add(LSTM(64, return_sequences=True, input_shape=(x_train.shape[1], 1)))
+    model_lstm.add(Dropout(0.2))
+    model_lstm.add(LSTM(64, return_sequences=False))
+    model_lstm.add(Dropout(0.2))
     model_lstm.add(Dense(25))
     model_lstm.add(Dense(1))
-    
-model_lstm.compile(optimizer='adam', loss='mean_squared_error')
-    
-epochs_to_use = 50 if high_accuracy else 20
-history = model_lstm.fit(x_train, y_train, batch_size=32, epochs=epochs_to_use, verbose=1)
+    model_lstm.compile(optimizer='adam', loss='mean_squared_error')
 
+    epochs_to_use = 50 if high_accuracy else 20
+    history = model_lstm.fit(x_train, y_train, batch_size=32, epochs=epochs_to_use, verbose=1)
 
     test_data = scaled_data[training_data_len - 60:, :]
-    x_test = []
+    x_test, y_test = [], dataset[training_data_len:]
     for i in range(60, len(test_data)):
         x_test.append(test_data[i - 60:i, 0])
 
@@ -155,14 +158,11 @@ history = model_lstm.fit(x_train, y_train, batch_size=32, epochs=epochs_to_use, 
     predictions = model_lstm.predict(x_test)
     predictions = scaler.inverse_transform(predictions)
 
-    valid = data[training_data_len:]
-    valid["Predictions"] = predictions
-    st.line_chart(valid[["Close", "Predictions"]])
     # Evaluate model with RMSE
-    from sklearn.metrics import mean_squared_error
-    predictions = model_lstm.predict(x_test)
-    predictions = scaler.inverse_transform(predictions)
     true_values = scaler.inverse_transform(y_test.reshape(-1, 1))
     rmse = np.sqrt(mean_squared_error(true_values, predictions))
     st.write(f"🔍 LSTM Forecast RMSE: {rmse:.2f}")
 
+    valid = data[training_data_len:]
+    valid["Predictions"] = predictions
+    st.line_chart(valid[["Close", "Predictions"]])
